@@ -3,7 +3,6 @@ import { useServerFn } from "@tanstack/react-start";
 import { useQueryClient } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { lovable } from "@/integrations/lovable";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -119,28 +118,15 @@ function AuthPage() {
     setLoading(true);
     setAuthError("");
     try {
-      // Prefer the Lovable-managed broker when it's available (works on the
-      // Lovable preview and .lovable.app domains). On self-hosted deployments
-      // (Netlify, custom domains) the broker isn't reachable, so we fall back
-      // to a direct Supabase OAuth redirect using the current origin.
-      try {
-        const result = await lovable.auth.signInWithOAuth("google", { redirect_uri: window.location.origin });
-        if (result.error) throw result.error;
-        if (result.redirected) return;
-        await completeOnboarding({ data: { fullName: "", companyName: "", rollbackOnFailure: false } });
-        await queryClient.invalidateQueries();
-        navigate({ to: "/dashboard", replace: true });
-        return;
-      } catch (brokerErr) {
-        // Broker unavailable — use the standard Supabase OAuth flow.
-        console.warn("Managed OAuth broker unavailable, falling back to Supabase OAuth", brokerErr);
-        const { error } = await supabase.auth.signInWithOAuth({
-          provider: "google",
-          options: { redirectTo: window.location.origin },
-        });
-        if (error) throw error;
-        // Browser redirects to Google; nothing else to do here.
-      }
+      // Pure Supabase OAuth — no Lovable broker. Redirects to /auth/callback
+      // on the current origin, which finalises the session and forwards to
+      // the dashboard. Works on localhost, Netlify and custom domains.
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: "google",
+        options: { redirectTo: `${window.location.origin}/auth/callback` },
+      });
+      if (error) throw error;
+      // Browser will redirect to Google now.
     } catch (err) {
       const message = friendlyAuthError(err, "Google sign-in failed");
       setAuthError(message);
@@ -264,6 +250,9 @@ function AuthPage() {
 function friendlyAuthError(err: unknown, fallback = "Authentication failed") {
   const raw = err instanceof Error ? err.message : String(err || fallback);
   const lower = raw.toLowerCase();
+  if (lower.includes("missing oauth secret") || lower.includes("unsupported provider")) {
+    return "Google sign-in is not configured for this backend yet. Add the Google OAuth client ID and secret in the backend auth settings, then try again.";
+  }
   if (lower.includes("invalid login credentials")) return "The email or password is incorrect.";
   if (lower.includes("already registered") || lower.includes("user already")) return "An account with this email already exists. Please sign in instead.";
   if (lower.includes("email not confirmed")) return "Please confirm your email before signing in.";
