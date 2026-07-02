@@ -15,4 +15,22 @@ export default defineConfig({
   // `_redirects`/function manifest). Inside a Lovable build this override is
   // ignored and Cloudflare is forced.
   nitro: { preset: "netlify" },
+  vite: {
+    build: {
+      chunkSizeWarningLimit: 1600,
+      rollupOptions: {
+        output: {
+          manualChunks(id) {
+            if (!id.includes("node_modules")) return;
+            if (id.includes("@react-pdf")) return "react-pdf.browser";
+            if (id.includes("recharts") || id.includes("d3-")) return "charts";
+            if (id.includes("@radix-ui")) return "radix";
+            if (id.includes("@supabase")) return "supabase";
+            if (id.includes("@tanstack")) return "tanstack";
+            if (id.includes("react-dom")) return "react-dom";
+          },
+        },
+      },
+    },
+  },
 });

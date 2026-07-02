@@ -10,7 +10,7 @@ const onboardingSchema = z.object({
 
 export const completeSignupOnboarding = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator(onboardingSchema)
+  .validator(onboardingSchema)
   .handler(async ({ data, context }) => {
     const { data: result, error } = await context.supabase.rpc("complete_user_onboarding" as never, {
       _full_name: data.fullName,

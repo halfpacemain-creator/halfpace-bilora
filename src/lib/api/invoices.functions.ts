@@ -4,7 +4,7 @@ import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 
 export const nextInvoiceNumber = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator(z.object({ company_id: z.string().uuid() }))
+  .validator(z.object({ company_id: z.string().uuid() }))
   .handler(async ({ data, context }) => {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const { data: result, error } = await (context.supabase as any).rpc("next_invoice_number", {
