@@ -119,12 +119,28 @@ function AuthPage() {
     setLoading(true);
     setAuthError("");
     try {
-      const result = await lovable.auth.signInWithOAuth("google", { redirect_uri: window.location.origin });
-      if (result.error) throw result.error;
-      if (result.redirected) return;
-      await completeOnboarding({ data: { fullName: "", companyName: "", rollbackOnFailure: false } });
-      await queryClient.invalidateQueries();
-      navigate({ to: "/dashboard", replace: true });
+      // Prefer the Lovable-managed broker when it's available (works on the
+      // Lovable preview and .lovable.app domains). On self-hosted deployments
+      // (Netlify, custom domains) the broker isn't reachable, so we fall back
+      // to a direct Supabase OAuth redirect using the current origin.
+      try {
+        const result = await lovable.auth.signInWithOAuth("google", { redirect_uri: window.location.origin });
+        if (result.error) throw result.error;
+        if (result.redirected) return;
+        await completeOnboarding({ data: { fullName: "", companyName: "", rollbackOnFailure: false } });
+        await queryClient.invalidateQueries();
+        navigate({ to: "/dashboard", replace: true });
+        return;
+      } catch (brokerErr) {
+        // Broker unavailable — use the standard Supabase OAuth flow.
+        console.warn("Managed OAuth broker unavailable, falling back to Supabase OAuth", brokerErr);
+        const { error } = await supabase.auth.signInWithOAuth({
+          provider: "google",
+          options: { redirectTo: window.location.origin },
+        });
+        if (error) throw error;
+        // Browser redirects to Google; nothing else to do here.
+      }
     } catch (err) {
       const message = friendlyAuthError(err, "Google sign-in failed");
       setAuthError(message);
@@ -214,7 +230,16 @@ function AuthPage() {
                   <Input id="password" type="password" required minLength={6} value={password} onChange={(e) => setPassword(e.target.value)} />
                 </div>
               )}
-              <Button type="submit" className="w-full" disabled={loading}>
+              <Button
+                type="submit"
+                className="w-full"
+                disabled={
+                  loading ||
+                  !email.trim() ||
+                  (!forgot && password.length < 6) ||
+                  (mode === "signup" && !forgot && (!name.trim() || !companyName.trim()))
+                }
+              >
                 {loading && <Loader2 className="size-4 animate-spin" />}
                 {forgot ? "Send reset link" : mode === "signup" ? "Create account" : "Sign in"}
               </Button>

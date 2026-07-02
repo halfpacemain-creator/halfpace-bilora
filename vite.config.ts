@@ -8,8 +8,10 @@ import { defineConfig } from "@lovable.dev/vite-tanstack-config";
 
 export default defineConfig({
   tanstackStart: {
-    // Redirect TanStack Start's bundled server entry to src/server.ts (our SSR error wrapper).
-    // nitro/vite builds from this
     server: { entry: "server" },
   },
+  // Nitro auto-detects the deploy target from the platform's env vars
+  // (Netlify sets NITRO_PRESET=netlify automatically). When building outside
+  // a known CI, `NITRO_PRESET=netlify npm run build` produces the same output.
+  nitro: true,
 });

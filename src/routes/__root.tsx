@@ -90,14 +90,14 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { name: "twitter:site", content: "@Lovable" },
       { name: "twitter:title", content: "HalfPace Bilora" },
       { name: "twitter:description", content: "Indian GST billing made simple." },
-      { property: "og:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/dc5d90cc-7c55-4905-a719-cda13f0b3734/id-preview-081a92ac--bd07bbf4-edc7-48df-b02c-0bb33d555d96.lovable.app-1781156262486.png" },
-      { name: "twitter:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/dc5d90cc-7c55-4905-a719-cda13f0b3734/id-preview-081a92ac--bd07bbf4-edc7-48df-b02c-0bb33d555d96.lovable.app-1781156262486.png" },
     ],
     links: [
       {
         rel: "stylesheet",
         href: appCss,
       },
+      { rel: "icon", type: "image/png", href: "/favicon.png" },
+      { rel: "apple-touch-icon", href: "/favicon.png" },
       { rel: "manifest", href: "/manifest.webmanifest" },
       { rel: "preconnect", href: "https://fonts.googleapis.com" },
       { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },

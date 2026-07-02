@@ -1,0 +1,33 @@
+# Netlify build configuration for HalfPace Bilora
+# TanStack Start + Vite. Nitro auto-detects Netlify and emits the correct
+# server output; we pin it explicitly so builds outside Netlify CI (e.g. local)
+# also produce a Netlify-compatible bundle.
+
+[build]
+  command = "npm run build"
+  publish = ".output/public"
+
+[build.environment]
+  NODE_VERSION = "20"
+  NITRO_PRESET = "netlify"
+
+# TanStack Start writes its Netlify function handler to .output/server.
+# Nitro's Netlify preset wires the `_redirects` and function manifest itself,
+# but we keep an SPA fallback below so client-side routes 200 on hard refresh
+# even if the platform serves the static publish dir directly.
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
+
+[[headers]]
+  for = "/assets/*"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Frame-Options = "SAMEORIGIN"
+    X-Content-Type-Options = "nosniff"
+    Referrer-Policy = "strict-origin-when-cross-origin"
