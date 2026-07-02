@@ -100,21 +100,21 @@ function CustomerFormBody({ companyId, customer, onSaved }: { companyId?: string
   };
 
   return (
-    <form onSubmit={save} className="grid grid-cols-2 gap-4 mt-2">
-      <Field label="Name *" className="col-span-2">
+    <form onSubmit={save} className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-2">
+      <Field label="Name *" className="sm:col-span-2">
         <Input required value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} />
       </Field>
       <Field label="Phone"><Input value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} /></Field>
       <Field label="Email"><Input type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} /></Field>
-      <Field label="GSTIN" className="col-span-2">
+      <Field label="GSTIN" className="sm:col-span-2">
         <Input value={form.gstin} onChange={(e) => setForm({ ...form, gstin: e.target.value.toUpperCase() })} className="font-mono" placeholder="22AAAAA0000A1Z5" />
       </Field>
-      <Field label="Billing address" className="col-span-2">
+      <Field label="Billing address" className="sm:col-span-2">
         <Textarea rows={2} value={form.billing_address} onChange={(e) => setForm({ ...form, billing_address: e.target.value })} />
       </Field>
       <Field label="City"><Input value={form.city} onChange={(e) => setForm({ ...form, city: e.target.value })} /></Field>
       <Field label="Pincode"><Input value={form.pincode} onChange={(e) => setForm({ ...form, pincode: e.target.value })} /></Field>
-      <Field label="State" className="col-span-2">
+      <Field label="State" className="sm:col-span-2">
         <Select value={form.state} onValueChange={(v) => {
           const s = INDIAN_STATES.find((x) => x.name === v);
           setForm({ ...form, state: v, state_code: s?.code ?? "" });
@@ -125,7 +125,7 @@ function CustomerFormBody({ companyId, customer, onSaved }: { companyId?: string
           </SelectContent>
         </Select>
       </Field>
-      <DialogFooter className="col-span-2 mt-2">
+      <DialogFooter className="sm:col-span-2 mt-2">
         <Button type="submit" disabled={saving}>{saving ? "Saving..." : "Save customer"}</Button>
       </DialogFooter>
     </form>

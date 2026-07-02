@@ -13,7 +13,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Textarea } from "@/components/ui/textarea";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { Plus, Pencil, Trash2 } from "lucide-react";
+import { Plus, Pencil, Trash2, Search } from "lucide-react";
 import { toast } from "sonner";
 import { formatINR } from "@/lib/format";
 
@@ -33,6 +33,7 @@ function ProductsPage() {
   const qc = useQueryClient();
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<Product | null>(null);
+  const [search, setSearch] = useState("");
 
   const { data: products } = useQuery({
     enabled: !!company,
@@ -55,6 +56,13 @@ function ProductsPage() {
     qc.invalidateQueries({ queryKey: ["products"] });
   };
 
+  const filtered = (products ?? []).filter((p) =>
+    !search ||
+    p.name.toLowerCase().includes(search.toLowerCase()) ||
+    (p.hsn_sac ?? "").toLowerCase().includes(search.toLowerCase()) ||
+    (p.description ?? "").toLowerCase().includes(search.toLowerCase()),
+  );
+
   return (
     <PageContainer>
       <PageHeader
@@ -73,10 +81,14 @@ function ProductsPage() {
         }
       />
       <Card className="p-4">
-        {(products ?? []).length === 0 ? (
+        <div className="flex items-center gap-2 mb-4">
+          <Search className="size-4 text-muted-foreground" />
+          <Input placeholder="Search by name, HSN or description" value={search} onChange={(e) => setSearch(e.target.value)} className="max-w-xs" />
+        </div>
+        {filtered.length === 0 ? (
           <p className="text-sm text-muted-foreground py-12 text-center">No items yet. Add a product or service.</p>
         ) : (
-          <Table>
+          <div className="overflow-x-auto"><Table>
             <TableHeader>
               <TableRow>
                 <TableHead>Item</TableHead>
@@ -88,7 +100,7 @@ function ProductsPage() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {(products ?? []).map((p) => (
+              {filtered.map((p) => (
                 <TableRow key={p.id}>
                   <TableCell>
                     <div className="font-medium flex items-center gap-2">
@@ -108,7 +120,7 @@ function ProductsPage() {
                 </TableRow>
               ))}
             </TableBody>
-          </Table>
+          </Table></div>
         )}
       </Card>
     </PageContainer>
@@ -129,18 +141,25 @@ function ProductDialog({ product, companyId, onSaved }: { product: Product | nul
 
   const save = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!companyId) return;
+    if (saving) return;
+    if (!companyId) return toast.error("Set up your business first");
+    if (!form.name.trim()) return toast.error("Name is required");
     setSaving(true);
-    const payload = { ...form, company_id: companyId };
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const q = product
-      ? (supabase.from("products" as any)).update(payload).eq("id", product.id)
-      : (supabase.from("products" as any)).insert(payload);
-    const { error } = await q;
-    setSaving(false);
-    if (error) return toast.error(error.message);
-    toast.success("Saved");
-    onSaved();
+    try {
+      const payload = { ...form, name: form.name.trim(), company_id: companyId };
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const q = product
+        ? (supabase.from("products" as any)).update(payload).eq("id", product.id)
+        : (supabase.from("products" as any)).insert(payload);
+      const { error } = await q;
+      if (error) { console.error("[product-save]", error); toast.error(error.message); return; }
+      toast.success(product ? "Item updated" : "Item added");
+      onSaved();
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Could not save item");
+    } finally {
+      setSaving(false);
+    }
   };
 
   return (

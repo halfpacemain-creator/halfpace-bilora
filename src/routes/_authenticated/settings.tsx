@@ -105,19 +105,25 @@ function SettingsPage() {
 
   const save = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (saving) return;
     setSaving(true);
-    const { data: u } = await supabase.auth.getUser();
-    if (!u.user) return;
-    const payload = { ...form, owner_id: u.user.id };
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const q = company
-      ? (supabase.from("companies" as any)).update(payload).eq("id", company.id)
-      : (supabase.from("companies" as any)).insert(payload);
-    const { error } = await q;
-    setSaving(false);
-    if (error) return toast.error(error.message);
-    toast.success("Settings saved");
-    qc.invalidateQueries({ queryKey: ["company"] });
+    try {
+      const { data: u } = await supabase.auth.getUser();
+      if (!u.user) { toast.error("Please sign in again."); return; }
+      const payload = { ...form, owner_id: u.user.id };
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const q = company
+        ? (supabase.from("companies" as any)).update(payload).eq("id", company.id)
+        : (supabase.from("companies" as any)).insert(payload);
+      const { error } = await q;
+      if (error) { toast.error(error.message); return; }
+      await qc.invalidateQueries({ queryKey: ["company"] });
+      toast.success("Settings saved");
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Could not save settings");
+    } finally {
+      setSaving(false);
+    }
   };
 
   if (isLoading) return <PageContainer><p className="text-muted-foreground">Loading…</p></PageContainer>;
@@ -152,7 +158,7 @@ function SettingsPage() {
       />
       <form onSubmit={save}>
         <Tabs defaultValue="business">
-          <TabsList>
+          <TabsList className="flex flex-wrap h-auto w-full justify-start gap-1">
             <TabsTrigger value="business">Business</TabsTrigger>
             <TabsTrigger value="branding">Branding</TabsTrigger>
             <TabsTrigger value="bank">Bank & UPI</TabsTrigger>
@@ -163,7 +169,7 @@ function SettingsPage() {
           </TabsList>
 
           <TabsContent value="business">
-            <Card className="p-6 grid grid-cols-2 gap-4">
+            <Card className="p-4 sm:p-6 grid grid-cols-1 sm:grid-cols-2 gap-4">
               <Field label="Business name *" full><Input required value={form.name ?? ""} onChange={(e) => set("name", e.target.value)} /></Field>
               <Field label="Legal name"><Input value={form.legal_name ?? ""} onChange={(e) => set("legal_name", e.target.value)} /></Field>
               <Field label="GSTIN" full>
@@ -215,14 +221,14 @@ function SettingsPage() {
           </TabsContent>
 
           <TabsContent value="branding">
-            <Card className="p-6 grid grid-cols-2 gap-6">
+            <Card className="p-4 sm:p-6 grid grid-cols-1 sm:grid-cols-2 gap-6">
               <AssetUpload label="Company logo" value={form.logo_url} onPick={(f) => upload(f, "logo")} onClear={() => set("logo_url", "")} />
               <AssetUpload label="Authorized signature" value={form.signature_url} onPick={(f) => upload(f, "signature")} onClear={() => set("signature_url", "")} />
             </Card>
           </TabsContent>
 
           <TabsContent value="bank">
-            <Card className="p-6 grid grid-cols-2 gap-4">
+            <Card className="p-4 sm:p-6 grid grid-cols-1 sm:grid-cols-2 gap-4">
               <Field label="Bank name"><Input value={form.bank_name ?? ""} onChange={(e) => set("bank_name", e.target.value)} /></Field>
               <Field label="Account holder"><Input value={form.bank_account_name ?? ""} onChange={(e) => set("bank_account_name", e.target.value)} /></Field>
               <Field label="Account number"><Input value={form.bank_account_number ?? ""} onChange={(e) => set("bank_account_number", e.target.value)} /></Field>
@@ -232,7 +238,7 @@ function SettingsPage() {
           </TabsContent>
 
           <TabsContent value="invoice">
-            <Card className="p-6 grid grid-cols-2 gap-4">
+            <Card className="p-4 sm:p-6 grid grid-cols-1 sm:grid-cols-2 gap-4">
               <Field label="Invoice prefix"><Input value={form.invoice_prefix ?? "INV"} onChange={(e) => set("invoice_prefix", e.target.value)} /></Field>
               <div />
               <Field label="Default terms & conditions" full>
@@ -333,7 +339,10 @@ function SettingsPage() {
         </Tabs>
 
         <div className="flex justify-end mt-6">
-          <Button type="submit" disabled={saving}>{saving ? "Saving..." : "Save settings"}</Button>
+          <Button type="submit" disabled={saving} className="gap-2 w-full sm:w-auto">
+            {saving && <Loader2 className="size-4 animate-spin" />}
+            {saving ? "Saving..." : "Save settings"}
+          </Button>
         </div>
       </form>
     </PageContainer>
@@ -342,7 +351,7 @@ function SettingsPage() {
 
 function Field({ label, children, full }: { label: string; children: React.ReactNode; full?: boolean }) {
   return (
-    <div className={`space-y-1.5 ${full ? "col-span-2" : ""}`}>
+    <div className={`space-y-1.5 min-w-0 ${full ? "sm:col-span-2" : ""}`}>
       <Label>{label}</Label>
       {children}
     </div>
