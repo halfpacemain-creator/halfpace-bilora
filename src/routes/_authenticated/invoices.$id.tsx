@@ -16,7 +16,7 @@ import { formatDate, formatINR } from "@/lib/format";
 import { amountInWords, hsnSummary } from "@/lib/gst";
 import { Download, Printer, Copy, Trash2, CheckCircle2, ArrowLeft, MessageCircle, Plus, Clock, Mail, Truck, ExternalLink, Pencil, Ban, FileCheck2 } from "lucide-react";
 import { toast } from "sonner";
-import { StatusBadge } from "@/routes/_authenticated/dashboard";
+import { StatusBadge } from "@/components/status-badge";
 import { themeFor, THEME_LIST, type InvoiceThemeKey } from "@/lib/invoice-themes";
 import { BRAND } from "@/lib/brand";
 

@@ -26,8 +26,6 @@ export default defineConfig({
             if (id.includes("recharts") || id.includes("d3-")) return "charts";
             if (id.includes("@radix-ui")) return "radix";
             if (id.includes("@supabase")) return "supabase";
-            if (id.includes("@tanstack")) return "tanstack";
-            if (id.includes("react-dom")) return "react-dom";
           },
         },
       },
