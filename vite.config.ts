@@ -10,8 +10,9 @@ export default defineConfig({
   tanstackStart: {
     server: { entry: "server" },
   },
-  // Nitro auto-detects the deploy target from the platform's env vars
-  // (Netlify sets NITRO_PRESET=netlify automatically). When building outside
-  // a known CI, `NITRO_PRESET=netlify npm run build` produces the same output.
-  nitro: true,
+  // Outside the Lovable build, target Netlify (Nitro's `netlify` preset emits
+  // `.netlify/functions-internal/server` + `dist/client` with the required
+  // `_redirects`/function manifest). Inside a Lovable build this override is
+  // ignored and Cloudflare is forced.
+  nitro: { preset: "netlify" },
 });

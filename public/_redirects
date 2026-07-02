@@ -1,4 +1,0 @@
-# SPA fallback for TanStack Router client-side routes.
-# Nitro's Netlify preset also emits its own routing; this file is a safety
-# net so hard refreshes on nested routes never 404.
-/*    /index.html   200
