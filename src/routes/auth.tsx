@@ -45,9 +45,25 @@ function AuthPage() {
   const handleAuth = async (e: React.FormEvent) => {
     e.preventDefault();
     if (loading) return; // hard-stop duplicate submissions
-    setLoading(true);
     setAuthError("");
     const cleanEmail = email.trim().toLowerCase();
+    // Explicit client-side validation — never call auth with empty credentials.
+    const emailRe = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!cleanEmail || !emailRe.test(cleanEmail)) {
+      setAuthError("Please enter a valid email address.");
+      return;
+    }
+    if (!forgot) {
+      if (!password || password.length < 6) {
+        setAuthError("Password must be at least 6 characters.");
+        return;
+      }
+      if (mode === "signup") {
+        if (!name.trim()) { setAuthError("Please enter your full name."); return; }
+        if (!companyName.trim()) { setAuthError("Please enter your business name."); return; }
+      }
+    }
+    setLoading(true);
     try {
       if (forgot) {
         const { error } = await supabase.auth.resetPasswordForEmail(cleanEmail, {
