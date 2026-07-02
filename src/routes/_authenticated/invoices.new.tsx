@@ -218,12 +218,12 @@ function NewInvoice() {
         }}
       />
 
-      <div className="grid lg:grid-cols-[1fr_360px] gap-6">
-        <div className="space-y-4">
-          <Card className="p-6 grid grid-cols-4 gap-4">
-            <div className="space-y-1.5 col-span-4">
+      <div className="grid xl:grid-cols-[minmax(0,1fr)_320px] gap-6">
+        <div className="space-y-4 min-w-0">
+          <Card className="p-4 sm:p-6 grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div className="space-y-1.5 col-span-2 md:col-span-4">
               <Label>Customer *</Label>
-              <div className="flex gap-2">
+              <div className="flex flex-col sm:flex-row gap-2">
                 <Select value={customerId} onValueChange={setCustomerId}>
                   <SelectTrigger className="flex-1"><SelectValue placeholder={(customers ?? []).length ? "Select customer" : "No customers yet — add one"} /></SelectTrigger>
                   <SelectContent>
@@ -257,7 +257,7 @@ function NewInvoice() {
 
           <Card className="p-0 overflow-hidden">
             {/* Desktop sticky header */}
-            <div className="hidden lg:grid sticky top-0 z-10 grid-cols-[28px_minmax(240px,3fr)_100px_80px_110px_88px_120px_36px] gap-3 px-4 py-3 bg-muted/60 backdrop-blur text-[11px] font-semibold uppercase tracking-wider text-muted-foreground border-b border-border">
+            <div className="hidden lg:grid sticky top-0 z-10 grid-cols-[24px_minmax(180px,2.4fr)_90px_70px_96px_80px_minmax(110px,1fr)_32px] gap-2 px-3 py-3 bg-muted/60 backdrop-blur text-[11px] font-semibold uppercase tracking-wider text-muted-foreground border-b border-border">
               <div />
               <div>Product / Service</div>
               <div>HSN/SAC</div>
@@ -292,13 +292,13 @@ function NewInvoice() {
             </div>
           </Card>
 
-          <Card className="p-6 grid grid-cols-2 gap-4">
+          <Card className="p-4 sm:p-6 grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-1.5"><Label>Notes</Label><Textarea rows={3} value={notes} onChange={(e) => setNotes(e.target.value)} /></div>
             <div className="space-y-1.5"><Label>Terms & conditions</Label><Textarea rows={3} value={terms} onChange={(e) => setTerms(e.target.value)} /></div>
           </Card>
         </div>
 
-        <Card className="p-6 h-fit sticky top-6">
+        <Card className="p-6 h-fit xl:sticky xl:top-6">
           <h3 className="font-semibold mb-4">Summary</h3>
           <div className="space-y-2 text-sm">
             <Row label="Subtotal" value={formatINR(totals.subtotal)} />
@@ -357,7 +357,7 @@ function LineItemRow({ item, index, products, onChange, onPickProduct, onRemove,
   return (
     <li ref={setNodeRef} style={style} className="bg-card">
       {/* Desktop row */}
-      <div className={`hidden lg:grid grid-cols-[28px_minmax(240px,3fr)_100px_80px_110px_88px_120px_36px] gap-3 px-4 py-4 items-start hover:bg-muted/30 transition-colors ${index % 2 ? "bg-muted/20" : ""}`}>
+      <div className={`hidden lg:grid grid-cols-[24px_minmax(180px,2.4fr)_90px_70px_96px_80px_minmax(110px,1fr)_32px] gap-2 px-3 py-4 items-start hover:bg-muted/30 transition-colors ${index % 2 ? "bg-muted/20" : ""}`}>
         <button type="button" {...attributes} {...listeners} className="mt-2 text-muted-foreground hover:text-foreground cursor-grab active:cursor-grabbing" aria-label="Drag to reorder">
           <GripVertical className="size-4" />
         </button>

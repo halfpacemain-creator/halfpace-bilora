@@ -69,20 +69,34 @@ function CustomerFormBody({ companyId, customer, onSaved }: { companyId?: string
 
   const save = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (saving) return;
     if (!companyId) return toast.error("Set up your business first");
     if (!form.name.trim()) return toast.error("Name is required");
     setSaving(true);
-    const payload = { ...form, company_id: companyId };
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const table: any = supabase.from("customers" as never);
-    const q: any = customer
-      ? table.update(payload).eq("id", customer.id).select("*").single()
-      : table.insert(payload).select("*").single();
-    const { data, error } = await q;
-    setSaving(false);
-    if (error) return toast.error(error.message);
-    toast.success(customer ? "Customer updated" : "Customer added");
-    onSaved(data as CustomerLike);
+    // Convert empty strings to null so nullable columns stay clean
+    const clean = <T extends Record<string, string>>(o: T) =>
+      Object.fromEntries(Object.entries(o).map(([k, v]) => [k, v?.toString().trim() === "" ? null : v])) as Record<string, string | null>;
+    const payload = { ...clean(form), name: form.name.trim(), company_id: companyId };
+    try {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const table: any = supabase.from("customers" as never);
+      const q: any = customer
+        ? table.update(payload).eq("id", customer.id).select("*").single()
+        : table.insert(payload).select("*").single();
+      const { data, error } = await q;
+      if (error) {
+        console.error("[customer-save] supabase error", error);
+        toast.error(error.message || "Could not save customer");
+        return;
+      }
+      toast.success(customer ? "Customer updated" : "Customer added");
+      onSaved(data as CustomerLike);
+    } catch (err) {
+      console.error("[customer-save] unexpected error", err);
+      toast.error(err instanceof Error ? err.message : "Could not save customer");
+    } finally {
+      setSaving(false);
+    }
   };
 
   return (
